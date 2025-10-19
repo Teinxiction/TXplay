@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TX Play欢迎您</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .bordered-text {
+            border: 2px solid #3498db;
+            padding: 15px;
+            margin: 10px;
+            border-radius: 8px;
+            background-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+        }
+        
+        .dashed-border {
+            border: 2px dashed #e74c3c;
+            padding: 12px;
+            margin: 10px;
+            background-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+        }
+        
+        .dotted-border {
+            border: 3px dotted #9b59b6;
+            padding: 10px;
+            margin: 10px;
+            background-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <h1>TX PLAY</h1>
+    <div id="timeDisplay" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:10px 15px;border-radius:8px;text-align:center;margin:10px 0;font-family:'Segoe UI';box-shadow:0 4px 15px rgba(0,0,0,0.2)"> </div><script>setInterval(()=>{const t=(new Date()-new Date('2025-10-06T10:00:00'))/1e3,d=Math.floor(t/86400),h=Math.floor(t%86400/3600),m=Math.floor(t%3600/60),s=Math.floor(t%60);document.getElementById('timeDisplay').textContent=`服务器已稳定运行: ${d}天 ${h}小时 ${m}分钟 ${s}秒`},1e3)</script>
+    <div id="mc-server-status" style="text-align:left;background:linear-gradient(135deg,#1a2a3a,#0d1b2a);padding:20px;border-radius:10px;color:#e0e0e0;font-family:'Segoe UI',sans-serif;max-width:400px;box-shadow:0 4px 15px rgba(0,0,0,0.3);border:1px solid rgba(76,175,80,0.2);margin:0 auto"><div style="display:flex;align-items:center;margin-bottom:15px"><div id="server-icon" style="width:64px;height:64px;border-radius:8px;margin-right:15px;background:#2a2a3a;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid #4CAF50"><span style="color:#90CAF9">图标</span></div><div style="flex:1"><div style="font-size:1.2rem;font-weight:bold;color:#4CAF50">play.tx1111.vvvv.host</div><div style="display:flex;align-items:center;margin-top:5px"><div id="status-indicator" style="width:12px;height:12px;border-radius:50%;margin-right:8px;background:#F44336;box-shadow:0 0 8px #F44336"></div><span id="status-text" style="font-weight:bold">查询中...</span><span id="ping" style="margin-left:10px;color:#90CAF9">- ms</span></div></div></div><div id="motd" style="background:rgba(40,40,60,0.6);padding:10px;border-radius:5px;margin-bottom:15px;min-height:20px;white-space:pre-line">正在查询服务器状态...</div><div style="display:flex;justify-content:space-between;margin-bottom:10px"><div><span style="color:#90CAF9">玩家:</span><span id="player-count">0/0</span></div><div><span style="color:#90CAF9">版本:</span><span id="server-version">-</span></div></div><div id="players-section" style="display:none"><div style="display:flex;align-items:center;margin-bottom:8px;cursor:pointer" onclick="togglePlayerList()"><span style="color:#90CAF9;margin-right:5px">在线玩家</span><span id="player-toggle" style="color:#4CAF50">▶</span></div><div id="player-list" style="background:rgba(40,40,60,0.6);padding:10px;border-radius:5px;max-height:150px;overflow-y:auto;display:none"><div id="players-container"></div></div></div></div><script>function checkServerStatus(){const startTime=Date.now();fetch('https://api.mcstatus.io/v2/status/java/play.tx1111.vvvv.host').then(r=>{if(!r.ok)throw new Error(`HTTP ${r.status}`);return r.json()}).then(d=>{const ping=Date.now()-startTime;updateStatus(d,ping)}).catch(e=>{console.error('查询失败:',e);document.getElementById('status-text').textContent='查询失败';document.getElementById('motd').textContent='API请求错误: '+e.message})}function updateStatus(d,ping){const s=document.getElementById('status-text'),i=document.getElementById('status-indicator'),m=document.getElementById('motd'),p=document.getElementById('player-count'),v=document.getElementById('server-version'),ps=document.getElementById('players-section'),pc=document.getElementById('players-container'),pingEl=document.getElementById('ping');if(d.online){s.textContent='在线';i.style.background='#4CAF50';i.style.boxShadow='0 0 8px #4CAF50';if(d.motd){if(d.motd.html){m.innerHTML=parseMotdHtml(d.motd.html)}else if(d.motd.clean){m.innerHTML=parseMotdClean(d.motd.clean)}else{m.textContent=d.motd.raw||'无描述'}}else{m.textContent='无描述'}p.textContent=`${d.players?d.players.online:0}/${d.players?d.players.max:0}`;v.textContent=d.version?d.version.name:'未知';pingEl.textContent=`${ping}ms`;if(d.players&&d.players.list&&d.players.list.length>0){ps.style.display='block';pc.innerHTML='';d.players.list.forEach(pl=>{const e=document.createElement('div');e.textContent=pl.name_clean||pl.name||pl;e.style.marginBottom='5px';pc.appendChild(e)})}else{ps.style.display='none'}if(d.icon){document.getElementById('server-icon').innerHTML=`<img src="${d.icon}" style="max-width:100%;max-height:100%" alt="服务器图标" onerror="this.style.display='none'">`}}else{s.textContent='离线';i.style.background='#F44336';i.style.boxShadow='0 0 8px #F44336';m.textContent='服务器当前不可用';p.textContent='0/0';v.textContent='-';pingEl.textContent='- ms';ps.style.display='none'}}function parseMotdHtml(html){return html.replace(/§0/g,'<span style="color:#000000">').replace(/§1/g,'<span style="color:#0000AA">').replace(/§2/g,'<span style="color:#00AA00">').replace(/§3/g,'<span style="color:#00AAAA">').replace(/§4/g,'<span style="color:#AA0000">').replace(/§5/g,'<span style="color:#AA00AA">').replace(/§6/g,'<span style="color:#FFAA00">').replace(/§7/g,'<span style="color:#AAAAAA">').replace(/§8/g,'<span style="color:#555555">').replace(/§9/g,'<span style="color:#5555FF">').replace(/§a/g,'<span style="color:#55FF55">').replace(/§b/g,'<span style="color:#55FFFF">').replace(/§c/g,'<span style="color:#FF5555">').replace(/§d/g,'<span style="color:#FF55FF">').replace(/§e/g,'<span style="color:#FFFF55">').replace(/§f/g,'<span style="color:#FFFFFF">').replace(/§l/g,'<span style="font-weight:bold">').replace(/§m/g,'<span style="text-decoration:line-through">').replace(/§n/g,'<span style="text-decoration:underline">').replace(/§o/g,'<span style="font-style:italic">').replace(/§k/g,'<span style="visibility:hidden">').replace(/§r/g,'</span><span style="color:#e0e0e0">').replace(/\n/g,'<br>')+'</span>'}function parseMotdClean(clean){return(Array.isArray(clean)?clean.join('<br>'):clean.replace(/\n/g,'<br>'))}function togglePlayerList(){const pl=document.getElementById('player-list'),pt=document.getElementById('player-toggle');pl.style.display=pl.style.display==='none'?'block':'none';pt.textContent=pl.style.display==='none'?'▶':'▼'}document.addEventListener('DOMContentLoaded',()=>{checkServerStatus();setInterval(checkServerStatus,120000)})</script>
+    <h2>关于我们</h2>
+    <h3>管理列表</h3>
+    <div class="dashed-border">
+        <h4>TeinxictionMC<span style="color: red;">(服主)</span></h4>
+    </div>
+    <h2>赞助者列表</h2>
+    没有赞助者，<a href="https://afdian.com/a/tx1111">点击前往赞助</a>
+    <h2>联系我们</h2>
+    <a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=pRLZSbmI2_3o_-UVFmB5FHnSRQQPRFex&jump_from=webapi&authKey=HbBqroB3QeTT0VIyOxhJBCrvZQceAYlJU+A+7GZTCycYHCcBckpEbNbRdHdi1H4e"><img border="0" src="//pub.idqqimg.com/wpa/images/group.png">点击加入QQ交流群</a><br>
+    <a href="https://discord.com/channels/1429328727610888194/1429328868191371397">Discord频道</a>(或者<a href="https://discord.com/channels/1429328727610888194/">Discord服务器</a>)
+    <h2>服规</h2>
+    <p>不能崩服<br>
+    不能炸服<br>
+    禁止非法获取OP和非法开创<br>
+    禁止破坏出生点地形<br>
+    禁止散播谣言<br>
+    那些管理计分板不用的时候把计分板隐藏，不然放右边丑死了<br>
+    服务器有登录插件<br>
+    不要title刷屏，管理想要测试title自己建个单人档测试，不是实际使用别放服务器里，再或者就title @p<br>
+    别在出生点挖区块，想挖跑500格开外<br>
+    不要挖空末地主岛:(((<br>
+    服务器有活动会送管理<br>
+    能开科技，但是别开太离谱，想开找个没人的时候开<br>
+    禁止由于个别玩家就xxx轰炸不良服务器，有啥事私下解决<br>
+    管理不要时不时就瞎几把隐身TP，尊重点玩家的个人隐私<br>
+    跑图跑到服务器都卡了TPS都降很严重了就别跑了，不然服务器崩了又得说是土豆<br>
+    崩了不会自动重启，别瞎几把卡服</p>
+    <h2>FAQ</h2>
+    <h3>Q:服务器会神犬吗</h3><p>A:服务器会维护良好的游戏环境，神犬的管理也会紫菜</p><br><br>
+    <h3>Q:如何获取OP权限</h3><p>A:目前只能通过活动和赞助获取OP权限</p><br><br>
+    <h3>Q:服务器版本多少</h3><p>A:Java 1.21.1</p><br><br>
+    <h3>Q:有没有正版验证</h3><p>A:没有正版验证</p><br><br>
+    <h3>Q:允不允许开科技</h3><p>A:可以，但是想开找个没人的地方开，禁止开OP挂和非法开创</p><br><br>
+    <h3>Q:允不允许生电/红石机器</h3><p>A:允许，只要你不卡服</p>
+    <br><br><br>© 2025 TeinxictionMC
+</body>
+</html>
